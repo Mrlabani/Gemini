@@ -1,12 +1,10 @@
 from flask import Flask, request
 import requests
 import logging
-from telegram import Update, ParseMode
+from telegram import Update
+from telegram.constants import ParseMode  # Correct import for ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, Dispatcher
-
-# Replace these with your own tokens
-TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_API_TOKEN'
-GEMINI_API_KEY = 'YOUR_GOOGLE_GEMINI_API_KEY'
+import config  # Import the configuration
 
 # Set up logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -17,7 +15,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Initialize Telegram Updater
-updater = Updater(TELEGRAM_TOKEN, use_context=True)
+updater = Updater(config.TELEGRAM_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -31,7 +29,7 @@ def handle_message(update: Update, context: CallbackContext) -> None:
         # Call the Google Gemini API
         response = requests.post(
             'https://api.google.com/gemini',  # Replace with the actual API endpoint
-            headers={'Authorization': f'Bearer {GEMINI_API_KEY}'},
+            headers={'Authorization': f'Bearer {config.GEMINI_API_KEY}'},
             json={'prompt': user_message}
         )
         response.raise_for_status()  # Raise an exception for HTTP errors
@@ -52,8 +50,7 @@ def webhook_handler():
 
 def main() -> None:
     # Set webhook
-    webhook_url = f"https://your-domain.com/webhook"
-    updater.bot.set_webhook(url=webhook_url)
+    updater.bot.set_webhook(url=config.WEBHOOK_URL)
 
     # Start Flask app
     app.run(host='0.0.0.0', port=5000)
